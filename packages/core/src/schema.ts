@@ -7,7 +7,7 @@ import {
   PositiveInt,
   RelativePath,
   withStatics,
-} from "@opencode-ai/schema/schema"
+} from "@telecode-ai/schema/schema"
 
 export {
   AbsolutePath,

@@ -1,6 +1,6 @@
-# OpenCode Desktop
+# TeleCode Desktop
 
-The OpenCode Desktop app, built with Electron.
+The TeleCode Desktop app, built with Electron.
 
 ## Development
 

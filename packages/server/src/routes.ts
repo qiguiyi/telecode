@@ -1,6 +1,6 @@
-import { Database } from "@opencode-ai/core/database/database"
-import { EventV2 } from "@opencode-ai/core/event"
-import { LocationServiceMap } from "@opencode-ai/core/location-layer"
+import { Database } from "@telecode-ai/core/database/database"
+import { EventV2 } from "@telecode-ai/core/event"
+import { LocationServiceMap } from "@telecode-ai/core/location-layer"
 import { FetchHttpClient, HttpRouter, HttpServer } from "effect/unstable/http"
 import { HttpApiBuilder } from "effect/unstable/httpapi"
 import { Layer, Option } from "effect"
@@ -14,13 +14,13 @@ import { PtyEnvironment } from "./pty-environment"
 export function createRoutes(password?: string) {
   return makeRoutes(
     password
-      ? ServerAuth.Config.layer({ username: "opencode", password: Option.some(password) })
+      ? ServerAuth.Config.layer({ username: "telecode", password: Option.some(password) })
       : ServerAuth.Config.defaultLayer,
   )
 }
 
 export function createEmbeddedRoutes() {
-  return makeRoutes(ServerAuth.Config.layer({ username: "opencode", password: Option.none() }))
+  return makeRoutes(ServerAuth.Config.layer({ username: "telecode", password: Option.none() }))
 }
 
 function makeRoutes<AuthError, AuthServices>(auth: Layer.Layer<ServerAuth.Config, AuthError, AuthServices>) {

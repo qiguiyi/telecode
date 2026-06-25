@@ -1,13 +1,13 @@
 {
-  "name": "@opencode-ai/desktop",
+  "name": "@telecode-ai/desktop",
   "private": true,
   "version": "1.17.10",
   "type": "module",
   "license": "MIT",
-  "homepage": "https://opencode.ai",
+  "homepage": "https://telecode.ai",
   "author": {
-    "name": "OpenCode",
-    "email": "hello@opencode.ai"
+    "name": "TeleCode",
+    "email": "hello@telecode.ai"
   },
   "scripts": {
     "typecheck": "tsgo -b",
@@ -36,8 +36,8 @@
   "devDependencies": {
     "@actions/artifact": "4.0.0",
     "@lydell/node-pty": "catalog:",
-    "@opencode-ai/app": "workspace:*",
-    "@opencode-ai/ui": "workspace:*",
+    "@telecode-ai/app": "workspace:*",
+    "@telecode-ai/ui": "workspace:*",
     "@sentry/solid": "catalog:",
     "@sentry/vite-plugin": "catalog:",
     "@solid-primitives/i18n": "2.2.1",

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=TeleCode
+Exec=/opt/TeleCode/ai.telecode.desktop %U
+Terminal=false
+Type=Application
+Icon=ai.telecode.desktop
+StartupWMClass=ai.telecode.desktop
+NoDisplay=true
+Comment=Open source AI coding agent
+Categories=Development;

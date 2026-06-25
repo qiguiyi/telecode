@@ -1,5 +1,5 @@
 {
-  "name": "@opencode-ai/function",
+  "name": "@telecode-ai/function",
   "version": "1.17.10",
   "$schema": "https://json.schemastore.org/package.json",
   "private": true,

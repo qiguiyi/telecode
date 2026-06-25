@@ -3,7 +3,7 @@ import type {
   WslInstalledDistro,
   WslJob,
   WslOnlineDistro,
-  WslOpencodeCheck,
+  WslTeleCodeCheck,
   WslRuntimeCheck,
   WslServerConfig,
   WslServerItem,
@@ -13,11 +13,11 @@ import type {
 } from "../../preload/types"
 import { WSL_SERVERS_KEY } from "../store-keys"
 import { getStore } from "../store"
-import { expectOpencodeVersion, pendingRestartAfterWslInstall, wslServerIdsToStartOnInitialize } from "./startup"
+import { expectTeleCodeVersion, pendingRestartAfterWslInstall, wslServerIdsToStartOnInitialize } from "./startup"
 import { clearWslDistroState, wslServerIdToRestart } from "./policy"
 import {
   installWslDistro,
-  installWslOpencode,
+  installWslTeleCode,
   installWslRuntimeElevated,
   listInstalledWslDistros,
   listOnlineWslDistros,
@@ -25,7 +25,7 @@ import {
   probeWslDistro,
   probeWslRuntime,
   readWslCommandVersion,
-  resolveWslOpencode,
+  resolveWslTeleCode,
   summarize,
 } from "./runtime"
 
@@ -47,7 +47,7 @@ type WslServersControllerOptions = {
   logger?: ControllerLogger
   readServers?: () => WslServerConfig[]
   writeServers?: (servers: WslServerConfig[]) => void
-  resolveOpencode?: typeof resolveWslOpencode
+  resolveTeleCode?: typeof resolveWslTeleCode
   readCommandVersion?: typeof readWslCommandVersion
 }
 
@@ -119,54 +119,54 @@ export function createWslServersController(
     updateServer(id, (item) => ({ ...item, runtime }))
   }
 
-  const setOpencodeCheck = (distro: string, check: WslOpencodeCheck) => {
+  const setTeleCodeCheck = (distro: string, check: WslTeleCodeCheck) => {
     setState({
-      opencodeChecks: {
-        ...state.opencodeChecks,
+      telecodeChecks: {
+        ...state.telecodeChecks,
         [distro]: check,
       },
     })
   }
 
-  const checkOpencode = async (distro: string, opts?: { signal?: AbortSignal }) => {
-    const resolved = await (options?.resolveOpencode ?? resolveWslOpencode)(distro, opts)
+  const checkTeleCode = async (distro: string, opts?: { signal?: AbortSignal }) => {
+    const resolved = await (options?.resolveTeleCode ?? resolveWslTeleCode)(distro, opts)
     const version = resolved
       ? await (options?.readCommandVersion ?? readWslCommandVersion)(resolved, distro, opts)
       : null
-    return opencodeCheck(distro, resolved, version, appVersion)
+    return telecodeCheck(distro, resolved, version, appVersion)
   }
 
-  const refreshOpencodeCheck = async (distro: string, opts?: { signal?: AbortSignal }) => {
-    setOpencodeCheck(distro, await checkOpencode(distro, opts))
+  const refreshTeleCodeCheck = async (distro: string, opts?: { signal?: AbortSignal }) => {
+    setTeleCodeCheck(distro, await checkTeleCode(distro, opts))
   }
 
   const hasServer = (id: string, distro: string) => {
     return state.servers.some((item) => item.config.id === id && item.config.distro === distro)
   }
 
-  const refreshOpencodeCheckBackground = (id: string, distro: string) => {
-    void checkOpencode(distro)
+  const refreshTeleCodeCheckBackground = (id: string, distro: string) => {
+    void checkTeleCode(distro)
       .then((check) => {
         if (!hasServer(id, distro)) return
-        setOpencodeCheck(distro, check)
+        setTeleCodeCheck(distro, check)
       })
       .catch((error) => {
         const message = error instanceof Error ? error.message : String(error)
-        logger?.error("wsl opencode check failed", { id, distro, message })
+        logger?.error("wsl telecode check failed", { id, distro, message })
       })
   }
 
-  const refreshOpencodeChecks = async () => {
+  const refreshTeleCodeChecks = async () => {
     await Promise.all(
       state.servers.map((item) =>
-        checkOpencode(item.config.distro)
+        checkTeleCode(item.config.distro)
           .then((check) => {
             if (!hasServer(item.config.id, item.config.distro)) return
-            setOpencodeCheck(item.config.distro, check)
+            setTeleCodeCheck(item.config.distro, check)
           })
           .catch((error) => {
             const message = error instanceof Error ? error.message : String(error)
-            logger?.error("wsl opencode check failed", {
+            logger?.error("wsl telecode check failed", {
               id: item.config.id,
               distro: item.config.distro,
               message,
@@ -227,7 +227,7 @@ export function createWslServersController(
         setRuntime(id, { kind: "failed", message })
         logger?.error("wsl sidecar exited", { id, distro: item.config.distro, code, signal })
       })
-      refreshOpencodeCheckBackground(id, item.config.distro)
+      refreshTeleCodeCheckBackground(id, item.config.distro)
       logger?.log("wsl sidecar ready", { id, distro: item.config.distro, url: sidecar.url })
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
@@ -279,7 +279,7 @@ export function createWslServersController(
 
     async initialize() {
       refreshFromStore()
-      void refreshOpencodeChecks()
+      void refreshTeleCodeChecks()
       for (const id of wslServerIdsToStartOnInitialize(state.servers.map((item) => item.config))) void startServer(id)
     },
 
@@ -334,20 +334,20 @@ export function createWslServersController(
       })
     },
 
-    async probeOpencode(name: string) {
-      await runJob({ kind: "probe-opencode", distro: name, startedAt: Date.now() }, async (abort) => {
-        await refreshOpencodeCheck(name, { signal: abort.signal })
+    async probeTeleCode(name: string) {
+      await runJob({ kind: "probe-telecode", distro: name, startedAt: Date.now() }, async (abort) => {
+        await refreshTeleCodeCheck(name, { signal: abort.signal })
       })
     },
 
-    async installOpencode(name: string) {
-      await runJob({ kind: "install-opencode", distro: name, startedAt: Date.now() }, async (abort) => {
-        const result = await installWslOpencode(appVersion, name, { signal: abort.signal })
+    async installTeleCode(name: string) {
+      await runJob({ kind: "install-telecode", distro: name, startedAt: Date.now() }, async (abort) => {
+        const result = await installWslTeleCode(appVersion, name, { signal: abort.signal })
         if (result.code !== 0) {
-          throw new Error(summarize(result.stderr || result.stdout) || "OpenCode installation failed")
+          throw new Error(summarize(result.stderr || result.stdout) || "TeleCode installation failed")
         }
-        await refreshOpencodeCheck(name, { signal: abort.signal })
-        expectOpencodeVersion(state.opencodeChecks[name]?.version ?? null, appVersion, name)
+        await refreshTeleCodeCheck(name, { signal: abort.signal })
+        expectTeleCodeVersion(state.telecodeChecks[name]?.version ?? null, appVersion, name)
         const id = wslServerIdToRestart(state.servers, name)
         if (id) await startServer(id)
       })
@@ -382,7 +382,7 @@ export function createWslServersController(
       persistServers(remaining)
       setState({
         servers: state.servers.filter((item) => item.config.id !== id),
-        ...(distro ? clearWslDistroState(state.distroProbes, state.opencodeChecks, distro) : {}),
+        ...(distro ? clearWslDistroState(state.distroProbes, state.telecodeChecks, distro) : {}),
       })
     },
 
@@ -408,7 +408,7 @@ function initialState(): WslServersState {
     installed: [],
     online: [],
     distroProbes: {},
-    opencodeChecks: {},
+    telecodeChecks: {},
     pendingRestart: false,
     servers: [],
     job: null,
@@ -444,12 +444,12 @@ function normalizePersistedServer(value: unknown): WslServerConfig[] {
   ]
 }
 
-function opencodeCheck(
+function telecodeCheck(
   distro: string,
   resolvedPath: string | null,
   version: string | null,
   expectedVersion: string,
-): WslOpencodeCheck {
+): WslTeleCodeCheck {
   if (!resolvedPath) {
     return {
       distro,
@@ -457,7 +457,7 @@ function opencodeCheck(
       version: null,
       expectedVersion,
       matchesDesktop: null,
-      error: "opencode is not installed in this distro",
+      error: "telecode is not installed in this distro",
     }
   }
   if (!version) {
@@ -467,7 +467,7 @@ function opencodeCheck(
       version: null,
       expectedVersion,
       matchesDesktop: null,
-      error: "opencode is installed but could not run",
+      error: "telecode is installed but could not run",
     }
   }
   return {
@@ -490,7 +490,7 @@ export type {
   WslOnlineDistro,
   WslRuntimeCheck,
   WslDistroProbe,
-  WslOpencodeCheck,
+  WslTeleCodeCheck,
   WslServerConfig,
   WslServerItem,
   WslServerRuntime,

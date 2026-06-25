@@ -1,19 +1,19 @@
-import type { WslOpencodeCheck, WslServerRuntime } from "./types"
+import type { WslTeleCodeCheck, WslServerRuntime } from "./types"
 
 export const wslRuntimeRetryable = (runtime: WslServerRuntime) =>
   runtime.kind === "failed" || runtime.kind === "stopped"
 
-export async function enterWslOpencodeStep(
+export async function enterWslTeleCodeStep(
   distro: string,
   probe: (distro: string) => Promise<unknown>,
-  select: (step: "opencode") => void,
+  select: (step: "telecode") => void,
 ) {
   await probe(distro)
-  select("opencode")
+  select("telecode")
 }
 
-export function wslOpencodeAction(check?: WslOpencodeCheck) {
+export function wslTeleCodeAction(check?: WslTeleCodeCheck) {
   if (!check) return
-  if (!check.resolvedPath) return "Install OpenCode"
-  if (check.matchesDesktop === false) return "Update OpenCode"
+  if (!check.resolvedPath) return "Install TeleCode"
+  if (check.matchesDesktop === false) return "Update TeleCode"
 }

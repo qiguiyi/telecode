@@ -1,9 +1,9 @@
 import { describe, expect } from "bun:test"
 import { Effect, Layer } from "effect"
-import { CommandV2 } from "@opencode-ai/core/command"
-import { Location } from "@opencode-ai/core/location"
-import { CommandPlugin } from "@opencode-ai/core/plugin/command"
-import { AbsolutePath } from "@opencode-ai/core/schema"
+import { CommandV2 } from "@telecode-ai/core/command"
+import { Location } from "@telecode-ai/core/location"
+import { CommandPlugin } from "@telecode-ai/core/plugin/command"
+import { AbsolutePath } from "@telecode-ai/core/schema"
 import { location } from "../fixture/location"
 import { testEffect } from "../lib/effect"
 import { host } from "./host"
@@ -19,7 +19,7 @@ const it = testEffect(
 )
 
 describe("CommandPlugin.Plugin", () => {
-  it.effect("registers built-in init and review commands", () =>
+  it.effect("registers built-in commands", () =>
     Effect.gen(function* () {
       const command = yield* CommandV2.Service
       yield* CommandPlugin.Plugin.effect(
@@ -43,6 +43,16 @@ describe("CommandPlugin.Plugin", () => {
         description: "review changes [commit|branch|pr], defaults to uncommitted",
         subtask: true,
       })
+      expect(yield* command.get("analysis")).toMatchObject({
+        name: "analysis",
+        description: "token usage analysis and billing statistics",
+      })
+      expect((yield* command.get("analysis"))?.template).toContain("`/repo`")
+      expect(yield* command.get("router")).toMatchObject({
+        name: "router",
+        description: "TeleCode routing configuration management",
+      })
+      expect((yield* command.get("router"))?.template).toContain("`/repo`")
     }),
   )
 })

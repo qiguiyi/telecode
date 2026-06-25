@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test"
-import { base64Encode } from "@opencode-ai/core/util/encode"
-import { mockOpenCodeServer } from "../../utils/mock-server"
+import { base64Encode } from "@telecode-ai/core/util/encode"
+import { mockTeleCodeServer } from "../../utils/mock-server"
 import { fixture, pageMessages } from "./session-timeline-stress.fixture"
 
 export async function installTimelineSettings(page: Page) {
@@ -23,7 +23,7 @@ export function mockStressTimeline(
   page: Page,
   input?: { onMessages?: (input: { sessionID: string; before?: string; phase: "start" | "end" }) => void },
 ) {
-  return mockOpenCodeServer(page, {
+  return mockTeleCodeServer(page, {
     sessions: fixture.sessions,
     provider: fixture.provider,
     directory: fixture.directory,
@@ -38,14 +38,14 @@ export async function installStressSessionTabs(page: Page, input?: { draftID?: s
   await page.addInitScript(
     ({ directory, sessionIDs, dirBase64, server, draftID }) => {
       localStorage.setItem(
-        "opencode.global.dat:server",
+        "telecode.global.dat:server",
         JSON.stringify({
           projects: { local: [{ worktree: directory, expanded: true }] },
           lastProject: { local: directory },
         }),
       )
       localStorage.setItem(
-        "opencode.global.dat:tabs",
+        "telecode.global.dat:tabs",
         JSON.stringify([
           ...sessionIDs.map((sessionId) => ({
             type: "session",
