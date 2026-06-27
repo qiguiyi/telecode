@@ -66,6 +66,7 @@ import { useMarked } from "@telecode-ai/ui/context/marked"
 import { preloadMarkdown } from "@telecode-ai/session-ui/markdown-cache"
 import { archiveHomeSession } from "./home-session-archive"
 import { showToast } from "@/utils/toast"
+import { HomeOfficeLauncher } from "@/features/office/home-office-launcher"
 
 const HOME_SESSION_LIMIT = 64
 const HOME_ROW_LAYOUT =
@@ -460,6 +461,7 @@ export function NewHome() {
             onClose={closeSearch}
             onSelect={selectSearchSession}
           />
+          <HomeOfficeLauncher server={focusedServer()} sync={focusedServerCtx()?.sync} project={newSessionProject()} />
           <ScrollView class="mt-3 min-h-0 flex-1">
             <Show
               when={!sessionLoad.isLoading}
